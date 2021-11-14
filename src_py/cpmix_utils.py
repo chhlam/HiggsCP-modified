@@ -88,20 +88,17 @@ def preprocess_data(args):
         np.save(os.path.join(data_path, 'ccovs.npy'), ccovs)
 
     c012s = np.load(os.path.join(data_path, 'c012s.npy'))
-
+    
     if not os.path.exists(os.path.join(data_path, str(num_classes)+'hits_c0s.npy')) \
        or not os.path.exists(os.path.join(data_path, str(num_classes)+'hits_c1s.npy')) \
        or not os.path.exists(os.path.join(data_path, str(num_classes)+'hits_c2s.npy')) \
        or np.load(os.path.join(data_path, str(num_classes)+'hits_c0s.npy')).shape[1] != num_classes \
        or np.load(os.path.join(data_path, str(num_classes)+'hits_c1s.npy')).shape[1] != num_classes \
        or np.load(os.path.join(data_path, str(num_classes)+'hits_c2s.npy')).shape[1] != num_classes:   # First time to create 'c012.npy'
-        classes = np.linspace(0, 2, num_classes) * np.pi
+        
+        classes = np.linspace(0, 2, num_classes)
         hits_c0s, hits_c1s, hits_c2s = calc_hits_c012s(classes, c012s, data_len, num_classes)
-        # trying with binary classification
-        if args.TRAINBKGD:
-            hits_c0s = np.hstack([hits_c0s,np.zeros((data_len,1))])
-            hits_c1s = np.hstack([hits_c1s,np.zeros((data_len,1))])
-            hits_c2s = np.hstack([hits_c2s,np.zeros((data_len,1))])
+        
         np.save(os.path.join(data_path, str(num_classes)+'hits_c0s.npy'), hits_c0s)
         np.save(os.path.join(data_path, str(num_classes)+'hits_c1s.npy'), hits_c1s)
         np.save(os.path.join(data_path, str(num_classes)+'hits_c2s.npy'), hits_c2s)
@@ -112,8 +109,9 @@ def preprocess_data(args):
         hits_c012s = np.load(os.path.join(data_path, str(num_classes)+'hits_c1s.npy'))
     elif args.HITS_C012s == "hits_c2s":
         hits_c012s = np.load(os.path.join(data_path, str(num_classes)+'hits_c2s.npy'))
-    if args.TRAINBKGD & len(hits_c012s[0])!=num_classes+1:
-        hits_c012s = np.hstack([hits_c012s,np.zeros((data_len,1))])
+    
+    # Brian: adding new column for additional class 
+    hits_c012s = np.hstack([hits_c012s,np.zeros((data_len,1))])
 
     if not reuse_weights or not os.path.exists(os.path.join(data_path, str(num_classes)+'weights.npy')) \
             or not os.path.exists(os.path.join(data_path, str(num_classes)+'argmaxs.npy')) \
@@ -122,11 +120,6 @@ def preprocess_data(args):
             or np.load(os.path.join(data_path, str(num_classes)+'hits_argmaxs.npy')).shape[1] != num_classes:
         classes = np.linspace(0, 2, num_classes) * np.pi
         weights, argmaxs,  hits_argmaxs = calc_weights_and_argmaxs(classes, c012s, data_len, num_classes)
-        
-        # trying with binary classification
-        if args.TRAINBKGD:
-            weights = np.hstack([weights,np.zeros((data_len,1))])
-            hits_argmaxs = np.hstack([hits_argmaxs,np.zeros((data_len,1))])
             
         np.save(os.path.join(data_path, str(num_classes)+'weights.npy'), weights)
         np.save(os.path.join(data_path, str(num_classes)+'argmaxs.npy'), argmaxs)
@@ -134,6 +127,11 @@ def preprocess_data(args):
     weights  = np.load(os.path.join(data_path, str(num_classes)+'weights.npy'))
     argmaxs = np.load(os.path.join(data_path, str(num_classes)+'argmaxs.npy'))
     hits_argmaxs = np.load(os.path.join(data_path, str(num_classes)+'hits_argmaxs.npy'))
+    
+    # Brian
+    # adding new column for additional class 
+    weights = np.hstack([weights,np.zeros((data_len,1))])
+    hits_argmaxs = np.hstack([hits_argmaxs,np.zeros((data_len,1))])
 
     #ERW
     # here argmaxs are in fraction of pi, not in the class index
@@ -167,19 +165,23 @@ def preprocess_data(args):
         Z_hits_c0s = np.zeros((Z_len, num_classes))
         Z_hits_c1s = np.zeros((Z_len, num_classes))
         Z_hits_c2s = np.zeros((Z_len, num_classes))
-        #Z_hits_c0s[:,(num_classes+1)//2] = 1
-        #Z_hits_c1s[:,(num_classes+1)//2] = 1
-        #Z_hits_c2s[:,(num_classes+1)//2] = 1
+        Z_hits_c0s[:,(num_classes)//2] = 1
+        Z_hits_c1s[:,(num_classes)//2] = 1
+        Z_hits_c2s[:,(num_classes)//2] = 1
         Z_hits_argmaxs = np.zeros((Z_len, num_classes))
         
         # playing with binary classification of signal against background
-        if args.TRAINBKGD == True:
+        if args.TRAINBKGD:
             Z_weights = np.hstack([Z_weights,np.full((Z_len,1),1.0)])
-            Z_hits_c0s = np.hstack([Z_hits_c0s,np.zeros((Z_len,1))])
-            Z_hits_c1s = np.hstack([Z_hits_c1s,np.zeros((Z_len,1))])
-            Z_hits_c2s = np.hstack([Z_hits_c2s,np.zeros((Z_len,1))])
-            Z_hits_argmaxs = np.hstack([Z_hits_argmaxs,np.full((Z_len,1),1.0)])
+        else:
+            Z_weights = np.hstack([Z_weights,np.zeros((Z_len,1))])
         
+        Z_hits_c0s = np.hstack([Z_hits_c0s,np.zeros((Z_len,1))])
+        Z_hits_c1s = np.hstack([Z_hits_c1s,np.zeros((Z_len,1))])
+        Z_hits_c2s = np.hstack([Z_hits_c2s,np.zeros((Z_len,1))])
+        
+        Z_hits_argmaxs = np.hstack([Z_hits_argmaxs,np.full((Z_len,1),1.0)])
+            
         data = np.vstack([data,Z_data])
         weights = np.vstack([weights,Z_weights])
         argmaxs = np.vstack([argmaxs,Z_argmaxs])
