@@ -126,6 +126,7 @@ def preprocess_data(args):
         classes = np.linspace(0, 2, num_classes) * np.pi
         weights, argmaxs,  hits_argmaxs = calc_weights_and_argmaxs(classes, c012s, data_len, num_classes)
         
+        # additional class to weights and hits_argmaxs
         weights = np.hstack([weights,np.zeros((data_len,1))])
         hits_argmaxs = np.hstack([hits_argmaxs,np.zeros((data_len,1))])
         
