@@ -161,8 +161,8 @@ def preprocess_data(args):
     # here weights and argmaxs are calculated at value of CPmix representing given class
     # in training, class is expressed as integer, not fraction pf pi.
 
-    if args.Z_NOISE_FRACTION > 0:
-        Z_len = int(args.Z_NOISE_FRACTION*data_len)
+    if args.Z_FRACTION > 0:
+        Z_len = int(args.Z_FRACTION*data_len)
         Z_data = read_np(os.path.join(data_path, suffix + "Z_raw.data.npy"))[:Z_len]
         Z_weights = np.zeros((Z_len, num_classes))
         Z_argmaxs = np.zeros((Z_len, 1))
@@ -179,7 +179,7 @@ def preprocess_data(args):
         Z_hits_argmaxs = np.zeros((Z_len, num_classes))
         
         # playing with binary classification of signal against background
-        if args.TRAINBKGD:
+        if args.LABEL:
             Z_weights = np.hstack([Z_weights,np.full((Z_len,1),1.0)])
         else:
             Z_weights = np.hstack([Z_weights,np.zeros((Z_len,1))])
