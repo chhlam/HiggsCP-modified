@@ -93,16 +93,16 @@ class UnweightedDataset(object):
 
 
 def read_np(filename):
-    # with open(filename) as f:
-        # return np.load(f)
+#    with open(filename) as f:
+#        return np.load(f)
     return np.load(filename)
-# :100000
 
 
 class EventDatasets(object):
 
     def __init__(self, event, weights, argmaxs, perm, c012s, hits_argmaxs, hits_c012s, filtered=False, raw=False, miniset=False,  unweighted=False):
         data = event.cols[:, :-1]
+        print(data.shape)
         filt = event.cols[:, -1]
 
         if miniset:
@@ -111,15 +111,13 @@ class EventDatasets(object):
             print(len(train_ids))
             valid_ids = perm[-200000:-100000]
             test_ids = perm[-100000:]
-            # train_ids, valid_ids, test_ids = perm[:int(len(perm) * 0.8)], perm[int(len(perm) * 0.8):int(len(perm) * 0.9)], perm[int(len(perm) * 0.9):]
         else:
-            # train_ids = perm[:-200000]
-            # valid_ids = perm[-200000:-100000]
-            # test_ids = perm[-100000:]
-            train_ids, valid_ids, test_ids = perm[:int(len(perm) * 0.8)], perm[int(len(perm) * 0.8):int(len(perm) * 0.9)], perm[int(len(perm) * 0.9):]
+            train_ids = perm[:-200000]
+            valid_ids = perm[-200000:-100000]
+            test_ids = perm[-100000:]
 
         if not raw:
-            print ("SCALE!!")
+            print("SCALE!!")
             means = data[train_ids].mean(0)
             stds = data[train_ids].std(0)
             data = (data - means) / stds
@@ -137,6 +135,7 @@ class EventDatasets(object):
         # if unweighted:
         #     w_a = np.array(map(unweight, w_a))
         #     w_b = np.array(map(unweight, w_b))
+
         self.train = Dataset(data[train_ids], weights[train_ids, :], argmaxs[train_ids], c012s[train_ids], hits_argmaxs[train_ids], hits_c012s[train_ids])
         self.valid = Dataset(data[valid_ids], weights[valid_ids, :], argmaxs[valid_ids], c012s[valid_ids], hits_argmaxs[valid_ids], hits_c012s[valid_ids])
         self.test = Dataset(data[test_ids], weights[test_ids, :], argmaxs[test_ids], c012s[test_ids], hits_argmaxs[test_ids], hits_c012s[test_ids])
